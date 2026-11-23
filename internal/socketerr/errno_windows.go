@@ -1,4 +1,4 @@
-package portscan
+package socketerr
 
 import (
 	"errors"
@@ -16,19 +16,20 @@ const (
 	wsaeHostUnreach syscall.Errno = 10065
 )
 
-func classifySystemError(err error) (State, bool) {
+// Classify interprets the system error in err's chain.
+func Classify(err error) Kind {
 	var errno syscall.Errno
 	if !errors.As(err, &errno) {
-		return StateError, false
+		return Unknown
 	}
 	switch errno {
 	case wsaeConnRefused:
-		return StateClosed, true
+		return Refused
 	case wsaeNetDown, wsaeNetUnreach, wsaeHostDown, wsaeHostUnreach:
-		return StateUnreachable, true
+		return Unreachable
 	case wsaeTimedOut:
-		return StateTimeout, true
+		return Timeout
 	default:
-		return StateError, true
+		return Other
 	}
 }

@@ -5,6 +5,8 @@ import (
 	"errors"
 	"net"
 	"os"
+
+	"github.com/BarracudaMVP/TCPScanner/internal/socketerr"
 )
 
 var errConnectTimeout = errors.New("TCP connect timeout")
@@ -22,8 +24,15 @@ func classifyDialError(err, cause error) State {
 		return StateTimeout
 	}
 
-	if state, ok := classifySystemError(err); ok {
-		return state
+	switch socketerr.Classify(err) {
+	case socketerr.Refused:
+		return StateClosed
+	case socketerr.Timeout:
+		return StateTimeout
+	case socketerr.Unreachable:
+		return StateUnreachable
+	case socketerr.Other:
+		return StateError
 	}
 	var netErr net.Error
 	if errors.As(err, &netErr) && netErr.Timeout() {

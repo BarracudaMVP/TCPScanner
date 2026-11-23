@@ -107,6 +107,9 @@ func TestScanLoopback(t *testing.T) {
 			if result.State != StateClosed || result.Err == nil {
 				t.Fatalf("unexpected closed result: %+v", result)
 			}
+			if state := classifyDialError(result.Err, context.Canceled); state != StateClosed {
+				t.Errorf("completed refusal with a canceled caller = %q; want closed", state)
+			}
 		})
 	}
 }

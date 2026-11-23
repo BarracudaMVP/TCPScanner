@@ -1,26 +1,27 @@
 //go:build unix
 
-package portscan
+package socketerr
 
 import (
 	"errors"
 	"syscall"
 )
 
-func classifySystemError(err error) (State, bool) {
+// Classify interprets the system error in err's chain.
+func Classify(err error) Kind {
 	var errno syscall.Errno
 	if !errors.As(err, &errno) {
-		return StateError, false
+		return Unknown
 	}
 	switch errno {
 	case syscall.ECONNREFUSED:
-		return StateClosed, true
+		return Refused
 	case syscall.ENETDOWN, syscall.ENETUNREACH, syscall.EHOSTDOWN, syscall.EHOSTUNREACH:
-		return StateUnreachable, true
+		return Unreachable
 	case syscall.ETIMEDOUT:
-		return StateTimeout, true
+		return Timeout
 	default:
 		// Errno.Timeout also returns true for EAGAIN, a temporary resource error.
-		return StateError, true
+		return Other
 	}
 }

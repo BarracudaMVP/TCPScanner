@@ -1,25 +1,27 @@
-package portscan
+// Package target validates scan targets and resolves them to IP addresses.
+package target
 
 import (
-	"cmp"
+	"context"
 	"errors"
 	"fmt"
 	"net/netip"
-	"slices"
 	"strings"
 )
 
-type target struct {
-	host string
+// Host is a validated IP literal or DNS name. Name preserves its input spelling.
+type Host struct {
+	Name string
 	ip   netip.Addr
 }
 
-func normalizeTargets(hosts []string) ([]target, error) {
+// Parse validates hosts and keeps the first spelling of each distinct target.
+func Parse(hosts []string) ([]Host, error) {
 	if len(hosts) == 0 {
 		return nil, errors.New("at least one host is required")
 	}
 
-	targets := make([]target, 0, len(hosts))
+	targets := make([]Host, 0, len(hosts))
 	seen := make(map[string]struct{}, len(hosts))
 	for _, host := range hosts {
 		ip, err := netip.ParseAddr(host)
@@ -41,9 +43,37 @@ func normalizeTargets(hosts []string) ([]target, error) {
 			continue
 		}
 		seen[key] = struct{}{}
-		targets = append(targets, target{host: host, ip: ip})
+		targets = append(targets, Host{Name: host, ip: ip})
 	}
 	return targets, nil
+}
+
+// Resolve returns the literal IP or the unique usable IPs returned by DNS.
+func (h Host) Resolve(ctx context.Context, lookupNetIP func(context.Context, string, string) ([]netip.Addr, error)) ([]netip.Addr, error) {
+	if h.ip.IsValid() {
+		return []netip.Addr{h.ip}, nil
+	}
+	addresses, err := lookupNetIP(ctx, "ip", h.Name)
+	if err != nil {
+		return nil, fmt.Errorf("resolve %q: %w", h.Name, err)
+	}
+	seen := make(map[netip.Addr]struct{}, len(addresses))
+	unique := make([]netip.Addr, 0, len(addresses))
+	for _, ip := range addresses {
+		ip = normalizeIP(ip)
+		if !ip.IsValid() {
+			continue
+		}
+		if _, exists := seen[ip]; exists {
+			continue
+		}
+		seen[ip] = struct{}{}
+		unique = append(unique, ip)
+	}
+	if len(unique) == 0 {
+		return nil, fmt.Errorf("resolve %q: no usable IP addresses", h.Name)
+	}
+	return unique, nil
 }
 
 func normalizeIP(ip netip.Addr) netip.Addr {
@@ -77,38 +107,4 @@ func validDNSHost(host string) bool {
 	}
 	// A system resolver may interpret a purely numeric name as an IPv4 address.
 	return !numeric
-}
-
-func normalizePorts(ports Ports) ([]uint16, error) {
-	const maxPort = 65535
-	if len(ports.List) == 0 && len(ports.Ranges) == 0 {
-		return nil, errors.New("at least one port is required")
-	}
-
-	ranges := make([]PortRange, 0, len(ports.List)+len(ports.Ranges))
-	for _, port := range ports.List {
-		if port < 1 || port > maxPort {
-			return nil, fmt.Errorf("port %d is outside 1..65535", port)
-		}
-		ranges = append(ranges, PortRange{From: port, To: port})
-	}
-	for _, interval := range ports.Ranges {
-		if interval.From < 1 || interval.From > interval.To || interval.To > maxPort {
-			return nil, fmt.Errorf("invalid port range %d..%d", interval.From, interval.To)
-		}
-		ranges = append(ranges, interval)
-	}
-
-	slices.SortFunc(ranges, func(a, b PortRange) int {
-		return cmp.Compare(a.From, b.From)
-	})
-	var unique []uint16
-	last := 0
-	for _, interval := range ranges {
-		for port := max(interval.From, last+1); port <= interval.To; port++ {
-			unique = append(unique, uint16(port))
-		}
-		last = max(last, interval.To)
-	}
-	return unique, nil
 }

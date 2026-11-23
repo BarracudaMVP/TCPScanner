@@ -1,0 +1,19 @@
+# Go build and test artifacts
+.env
+*.exe
+*.test
+*.out
+*.dll
+*.so
+*.dylib
+/coverage.html
+
+# Local Go workspace
+/go.work
+/go.work.sum
+
+# Editor and OS files
+/.idea/
+/.vscode/
+.DS_Store
+Thumbs.db
