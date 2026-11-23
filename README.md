@@ -131,9 +131,7 @@ for result := range results {
 
 Справка по публичному API генерируется из комментариев Go. Для просмотра из корня репозитория используйте `go doc -all .`.
 
-GitHub Actions сохраняет текст справки в артефакте `api-docs` успешного прогона. [Запуски GitHub Actions](https://github.com/BarracudaMVP/TCPScanner/actions)
-
-Для публичного модуля документация отображается на pkg.go.dev после индексации при наличии распознаваемой лицензии. [Страница пакета](https://pkg.go.dev/github.com/BarracudaMVP/TCPScanner) · [Политика лицензий](https://pkg.go.dev/license-policy)
+GitHub Actions сохраняет текст справки в артефакте `api-docs` успешного прогона.
 
 ## Тесты
 
