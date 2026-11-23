@@ -1,4 +1,4 @@
-package portscan
+package tcpscanner
 
 import (
 	"context"

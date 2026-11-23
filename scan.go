@@ -1,4 +1,4 @@
-package portscan
+package tcpscanner
 
 import (
 	"context"
@@ -17,10 +17,10 @@ import (
 // early. A canceled scan can deliver a partial set of results.
 func (s *Scanner) Scan(ctx context.Context, hosts []string, ports Ports) (<-chan Result, error) {
 	if s == nil || s.slots == nil {
-		return nil, errors.New("portscan: initialize the scanner with New")
+		return nil, errors.New("tcpscanner: initialize the scanner with New")
 	}
 	if ctx == nil {
-		return nil, errors.New("portscan: nil context")
+		return nil, errors.New("tcpscanner: nil context")
 	}
 	if err := ctx.Err(); err != nil {
 		return nil, err

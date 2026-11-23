@@ -1,10 +1,10 @@
-// Package portscan checks TCP port availability with bounded concurrency.
+// Package tcpscanner checks TCP port availability with bounded concurrency.
 // The scanner closes each connection as soon as the attempt succeeds.
 //
 // Use [New] to configure a [Scanner] and [Scanner.Scan] to check IP literals or
 // DNS names. Read the results until the channel closes or cancel the scan context
 // if you stop reading early.
-package portscan
+package tcpscanner
 
 import (
 	"context"
@@ -34,10 +34,10 @@ type Scanner struct {
 // New constructs a Scanner with the given connection limits.
 func New(cfg Config) (*Scanner, error) {
 	if cfg.Concurrency <= 0 {
-		return nil, fmt.Errorf("portscan: concurrency must be positive, got %d", cfg.Concurrency)
+		return nil, fmt.Errorf("tcpscanner: concurrency must be positive, got %d", cfg.Concurrency)
 	}
 	if cfg.ConnectTimeout <= 0 {
-		return nil, fmt.Errorf("portscan: connect timeout must be positive, got %s", cfg.ConnectTimeout)
+		return nil, fmt.Errorf("tcpscanner: connect timeout must be positive, got %s", cfg.ConnectTimeout)
 	}
 	var resolver net.Resolver
 	var dialer net.Dialer

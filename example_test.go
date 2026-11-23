@@ -1,4 +1,4 @@
-package portscan_test
+package tcpscanner_test
 
 import (
 	"context"
@@ -17,7 +17,7 @@ func ExampleScanner_Scan() {
 	defer listener.Close()
 	address := listener.Addr().(*net.TCPAddr)
 
-	scanner, err := portscan.New(portscan.Config{
+	scanner, err := tcpscanner.New(tcpscanner.Config{
 		Concurrency:    1,
 		ConnectTimeout: time.Second,
 	})
@@ -27,7 +27,7 @@ func ExampleScanner_Scan() {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	results, err := scanner.Scan(ctx, []string{address.IP.String()}, portscan.Ports{
+	results, err := scanner.Scan(ctx, []string{address.IP.String()}, tcpscanner.Ports{
 		List: []int{address.Port},
 	})
 	if err != nil {

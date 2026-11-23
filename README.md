@@ -1,15 +1,15 @@
 # TCP Scanner
 
-`portscan` — Go-пакет для проверки доступности TCP-портов на IPv4, IPv6 и DNS-целях. Он использует TCP Connect и сразу закрывает успешно установленные соединения. Пакет рассчитан на Go 1.25.5 и использует стандартную библиотеку.
+`tcpscanner` — Go-пакет для проверки доступности TCP-портов на IPv4, IPv6 и DNS-целях. Он использует TCP Connect и сразу закрывает успешно установленные соединения. Пакет рассчитан на Go 1.25.5 и использует стандартную библиотеку.
 
 ## Быстрый старт
 
 Создайте модуль для примера и подключите опубликованный TCP Scanner.
 
 ```sh
-mkdir portscan-demo
-cd portscan-demo
-go mod init example.com/portscan-demo
+mkdir tcpscanner-demo
+cd tcpscanner-demo
+go mod init example.com/tcpscanner-demo
 go get github.com/BarracudaMVP/TCPScanner
 ```
 
@@ -28,7 +28,7 @@ import (
 )
 
 func main() {
-    scanner, err := portscan.New(portscan.Config{
+    scanner, err := tcpscanner.New(tcpscanner.Config{
         Concurrency:    32,
         ConnectTimeout: 500 * time.Millisecond,
     })
@@ -39,9 +39,9 @@ func main() {
     ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
     defer cancel()
 
-    results, err := scanner.Scan(ctx, []string{"127.0.0.1", "localhost"}, portscan.Ports{
+    results, err := scanner.Scan(ctx, []string{"127.0.0.1", "localhost"}, tcpscanner.Ports{
         List:   []int{443},
-        Ranges: []portscan.PortRange{{From: 8080, To: 8082}},
+        Ranges: []tcpscanner.PortRange{{From: 8080, To: 8082}},
     })
     if err != nil {
         log.Fatal(err)
@@ -118,7 +118,7 @@ if err != nil {
     return err
 }
 for result := range results {
-    if result.State == portscan.StateOpen {
+    if result.State == tcpscanner.StateOpen {
         cancel()
         break
     }
